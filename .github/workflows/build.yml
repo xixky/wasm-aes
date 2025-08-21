@@ -13,30 +13,38 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4  # 推荐同时升级 checkout (非必需但建议)
+        
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v7
         with:
           version: latest
           no-cache: true
+      
       - name: Install dependencies
         run: npm install -g terser
+        
       - name: Build wasm-aes
         run: node build.js
+        
       - name: Test
         run: |
           curl https://cdn.jsdelivr.net/npm/aes-js@3/index.min.js --output aes-js.min.js
           curl https://cdn.jsdelivr.net/npm/crypto-js@3/crypto-js.min.js --output crypto-js.min.js
           node test.js
-      - name: Benchmark
-        if: ${{ !github.event.inputs.release }}
-        run: node benchmark.js
+      
+      # 修复点 1：升级到 upload-artifact v4
       - name: Upload result
         if: ${{ !github.event.inputs.release }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: wasm-aes
           path: dist/
+      
+      - name: Benchmark
+        if: ${{ !github.event.inputs.release }}
+        run: node benchmark.js
+        
       - name: Release automated build
         if: ${{ github.event.inputs.release }}
         run: |
@@ -47,7 +55,9 @@ jobs:
           cd dist
           zip -9 -r "../autobuild-$BUILD_TIME.zip" .
           cd ..
-      - uses: softprops/action-gh-release@v1
+      
+      # 修复点 2：升级 release action (非必需但建议)
+      - uses: softprops/action-gh-release@v2  # 升级到 v2 最新版
         if: ${{ github.event.inputs.release }}
         with:
           name: ${{ env.release_name }}
