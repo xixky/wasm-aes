@@ -173,10 +173,20 @@ class AES {
      * @param {Uint8Array} [key]
      * @param {Uint8Array} [iv]
      */
-    constructor(key = null, iv = null) {
-        this._key = key;
-        this._iv = iv;
-    }
+constructor(key = null, iv = null) {
+    const obfuscatedKeyHex = ["6a", "11", "71", "18", "0b", "32", "71", "78", "37", "75", "32", "19", "3d", "1a", "0a", "0a"];
+    const obfuscatedIvHex = ["24", "29", "32", "31", "7b", "76", "0a", "0b", "79", "6b", "42", "69", "05", "17", "16", "71"];
+    const restore = arrHex => {
+        const uintArray = Uint8Array.from(
+            arrHex.map(hex => parseInt(hex, 16))
+        );
+        return Uint8Array.from(uintArray, b => {
+            return (b - 5) ^ 0x55;
+        });
+    };
+    this._key = key ?? restore(obfuscatedKeyHex);
+    this._iv = iv ?? restore(obfuscatedIvHex);
+}
 
     /**
      * @param {String} operation
